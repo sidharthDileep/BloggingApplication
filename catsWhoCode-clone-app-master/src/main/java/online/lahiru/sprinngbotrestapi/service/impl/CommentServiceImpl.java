@@ -1,34 +1,39 @@
 package online.lahiru.sprinngbotrestapi.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
 import online.lahiru.sprinngbotrestapi.entity.Comment;
 import online.lahiru.sprinngbotrestapi.entity.Post;
+import online.lahiru.sprinngbotrestapi.entity.Role;
 import online.lahiru.sprinngbotrestapi.exception.BlogAPIException;
 import online.lahiru.sprinngbotrestapi.exception.ResourceNotFoundException;
 import online.lahiru.sprinngbotrestapi.payload.CommentDTO;
-import online.lahiru.sprinngbotrestapi.repository.CommentRepository;
-import online.lahiru.sprinngbotrestapi.repository.PostRepository;
+import online.lahiru.sprinngbotrestapi.repository.CommentRepository2;
+import online.lahiru.sprinngbotrestapi.repository.PostRepository2;
 import online.lahiru.sprinngbotrestapi.service.CommentService;
-import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.ui.ModelMap;
-
-import javax.swing.text.BadLocationException;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements CommentService {
 
-    private CommentRepository commentRepository;
-    private PostRepository postRepository;
+    //private CommentRepository commentRepository;
+    private CommentRepository2 commentRepository2;
+    //private PostRepository postRepository;
+    private PostRepository2 postRepository2;
+    
+    @Autowired
+	private SequenceGeneratorService service;
 
     private ModelMapper mapper;
 
-    public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository,ModelMapper mapper) {
-        this.commentRepository = commentRepository;
-        this.postRepository = postRepository;
+    public CommentServiceImpl(CommentRepository2 commentRepository, PostRepository2 postRepository,ModelMapper mapper) {
+        this.commentRepository2 = commentRepository;
+        this.postRepository2 = postRepository;
         this.mapper=mapper;
     }
 
@@ -36,9 +41,11 @@ public class CommentServiceImpl implements CommentService {
     public CommentDTO createComment(long postId, CommentDTO commentDTO) {
         Comment comment = mapToEntity(commentDTO);
 
-        Post post = postRepository.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        Post post = postRepository2.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
         comment.setPost(post);
-        Comment newComment = commentRepository.save(comment);
+        Comment newComment = commentRepository2.save(comment);
+        
+        newComment.setId((long) service.getSequenceNumber(Comment.SEQUENCE_NAME));
 
 
         return mapToDTO(newComment);
@@ -46,15 +53,15 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentDTO> getCommentsByPostId(long postId) {
-        List<Comment> comments = commentRepository.findByPostId(postId);
+        List<Comment> comments = commentRepository2.findByPostId(postId);
         return comments.stream().map(comment -> mapToDTO(comment)).collect(Collectors.toList());
 
     }
 
     @Override
     public CommentDTO getCommentById(Long postId, Long commentId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
-        Comment comment=commentRepository.findById(commentId).orElseThrow(()->new ResourceNotFoundException("Comment","id", commentId));
+        Post post = postRepository2.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        Comment comment=commentRepository2.findById(commentId).orElseThrow(()->new ResourceNotFoundException("Comment","id", commentId));
 
         if(!comment.getPost().getId().equals(post.getId())){
             throw  new BlogAPIException(HttpStatus.BAD_REQUEST,"Comment does not belongs to the post");
@@ -65,8 +72,8 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDTO updateComment(Long postId, long commentId, CommentDTO commentRequest) {
 
-        Post post = postRepository.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
-        Comment comment=commentRepository.findById(commentId).orElseThrow(()->new ResourceNotFoundException("Comment","id", commentId));
+        Post post = postRepository2.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        Comment comment=commentRepository2.findById(commentId).orElseThrow(()->new ResourceNotFoundException("Comment","id", commentId));
 
 
         if(!comment.getPost().getId().equals(post.getId())){
@@ -77,7 +84,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setEmial(commentRequest.getEmial());
         comment.setBody(commentRequest.getBody());
 
-        Comment updatedComment = commentRepository.save(comment);
+        Comment updatedComment = commentRepository2.save(comment);
         return mapToDTO(updatedComment);
 
 
@@ -85,14 +92,14 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void deletePost(Long postId, Long commentId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
-        Comment comment=commentRepository.findById(commentId).orElseThrow(()->new ResourceNotFoundException("Comment","id", commentId));
+        Post post = postRepository2.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        Comment comment=commentRepository2.findById(commentId).orElseThrow(()->new ResourceNotFoundException("Comment","id", commentId));
 
         if(!comment.getPost().getId().equals(post.getId())){
             throw  new BlogAPIException(HttpStatus.BAD_REQUEST,"Comment does not belongs to the post");
 
         }
-        commentRepository.delete(comment);
+        commentRepository2.delete(comment);
 
     }
 

@@ -1,14 +1,18 @@
 package online.lahiru.sprinngbotrestapi.controller;
 
-import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,6 +40,8 @@ public class PostController {
 	String topic = "myTopic";
 
     private PostService postService;
+    
+    List<String> messages = new ArrayList<>();
 
     public PostController(PostService postService) {
         this.postService = postService;
@@ -75,9 +81,17 @@ public class PostController {
     }
     
     @GetMapping("between")
-    public ResponseEntity<List<PostDTO>> getPostBetweenDate(Date durationFrom, Date durationTo) {
+    public ResponseEntity<List<PostDTO>> getPostBetweenDate(String durationFrom, String durationTo) {
     	kafkaTemplate.send(topic, "GET Request with Duration range -> From : " + durationFrom + " To : " + durationTo);
-        return ResponseEntity.ok(postService.getPostBetweenDate(durationFrom, durationTo));
+    	
+		///DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-DD-YYYY");
+		//System.out.println(LocalDate.parse(durationFrom, formatter).atStartOfDay());
+
+		  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.US);
+
+		  LocalDateTime localDateTime = LocalDate.parse(durationFrom, formatter).atStartOfDay();
+		  System.out.println(localDateTime);
+        return ResponseEntity.ok(postService.getPostBetweenDate(LocalDate.parse(durationFrom, formatter).atStartOfDay(), LocalDate.parse(durationTo, formatter).atStartOfDay()));
     }
 
     //update update post API
@@ -101,4 +115,16 @@ public class PostController {
         postService.deletePostByName(title);
         return new ResponseEntity<>("Post deleted successfully !", HttpStatus.OK);
     }
+    
+    @DeleteMapping("deleteUser/{user}")
+    public ResponseEntity<String> deleteUser(@PathVariable(name = "user") String user) {
+        postService.deleteUser(user);
+        kafkaTemplate.send("deletePost", user);
+        return new ResponseEntity<>("User deleted successfully !", HttpStatus.OK);
+    }
+    
+    @KafkaListener(groupId = "user", topics = "deletePost", containerFactory = "kafkaListenerContainerFactory")
+	public void getMsgFromTopic(String data) {
+		postService.deleteAllPostsOfUser(data);
+	}
 }

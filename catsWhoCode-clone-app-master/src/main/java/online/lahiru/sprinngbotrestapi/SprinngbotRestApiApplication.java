@@ -1,13 +1,15 @@
 package online.lahiru.sprinngbotrestapi;
 
-import online.lahiru.sprinngbotrestapi.entity.Role;
-import online.lahiru.sprinngbotrestapi.repository.RoleRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+
+import online.lahiru.sprinngbotrestapi.entity.Role;
+import online.lahiru.sprinngbotrestapi.repository.RoleRepository2;
+import online.lahiru.sprinngbotrestapi.service.impl.SequenceGeneratorService;
 
 @SpringBootApplication
 public class SprinngbotRestApiApplication implements CommandLineRunner {
@@ -20,18 +22,27 @@ public class SprinngbotRestApiApplication implements CommandLineRunner {
 		SpringApplication.run(SprinngbotRestApiApplication.class, args);
 	}
 
+//	@Autowired
+//	private RoleRepository roleRepository;
+	
 	@Autowired
-	private RoleRepository roleRepository;
+	private SequenceGeneratorService service;
+	
+	@Autowired
+	private RoleRepository2 roleRepository2;
 
 	@Override
 	public void run(String... args) throws Exception {
 		Role adminRole = new Role();
+		adminRole.setId(service.getSequenceNumber(Role.SEQUENCE_NAME));
 		adminRole.setName("ROLE_ADMIN");
-		roleRepository.save(adminRole);
+		
+		roleRepository2.save(adminRole);
 
 		Role userRole = new Role();
+		userRole.setId(service.getSequenceNumber(Role.SEQUENCE_NAME));
 		userRole.setName("ROLE_USER");
-		roleRepository.save(userRole);
+		roleRepository2.save(userRole);
 
 
 

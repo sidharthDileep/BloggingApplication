@@ -1,11 +1,12 @@
 package online.lahiru.sprinngbotrestapi.service.impl;
 
-import online.lahiru.sprinngbotrestapi.entity.Post;
-import online.lahiru.sprinngbotrestapi.exception.ResourceNotFoundException;
-import online.lahiru.sprinngbotrestapi.payload.PostDTO;
-import online.lahiru.sprinngbotrestapi.payload.PostResponse;
-import online.lahiru.sprinngbotrestapi.repository.PostRepository;
-import online.lahiru.sprinngbotrestapi.service.PostService;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,13 +17,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import javax.print.attribute.standard.PageRanges;
-
-import java.sql.Date;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import online.lahiru.sprinngbotrestapi.entity.Post;
+import online.lahiru.sprinngbotrestapi.exception.ResourceNotFoundException;
+import online.lahiru.sprinngbotrestapi.payload.PostDTO;
+import online.lahiru.sprinngbotrestapi.payload.PostResponse;
+import online.lahiru.sprinngbotrestapi.repository.PostRepository2;
+import online.lahiru.sprinngbotrestapi.repository.UserRepository2;
+import online.lahiru.sprinngbotrestapi.service.PostService;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -30,13 +31,21 @@ public class PostServiceImpl implements PostService {
 	@Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 	
+	@Autowired
+	private UserRepository2 userRepository;
+	
 	String topic = "myTopic";
+	
+	@Autowired
+	private SequenceGeneratorService service;
 
-	private PostRepository postRepository;
+	//private PostRepository postRepository;
+	
+	private PostRepository2 postRepository2;
 	private ModelMapper mapper;
 
-	public PostServiceImpl(PostRepository postRepository, ModelMapper modelMapper) {
-		this.postRepository = postRepository;
+	public PostServiceImpl(PostRepository2 postRepository, ModelMapper modelMapper) {
+		this.postRepository2 = postRepository;
 		this.mapper = modelMapper;
 	}
 
@@ -82,7 +91,16 @@ public class PostServiceImpl implements PostService {
 		System.out.println("UserName : " + username);
 		Post post = mapToEntiy(postDTO);
 		post.setUser(username);
-		Post newPost = postRepository.save(post);
+		post.setId((long) service.getSequenceNumber(Post.SEQUENCE_NAME));
+		
+		LocalDateTime date = LocalDate.now().atStartOfDay();
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-DD-YYYY");
+		date.format(formatter);
+		
+		post.setCreatedAt(date);
+		
+		Post newPost = postRepository2.save(post);
 
 		// convert entity to DTO
 		PostDTO postResponse = mapToDTO(newPost);
@@ -107,7 +125,7 @@ public class PostServiceImpl implements PostService {
 				: Sort.by(sortBy).descending();
 		PageRequest pageable = PageRequest.of(pageNo, pageSize, sort);
 
-		Page<Post> posts = postRepository.findAll(pageable);
+		Page<Post> posts = postRepository2.findAll(pageable);
 		// get content for page object
 		posts.getContent();
 
@@ -125,19 +143,19 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public PostDTO getPostById(long id) {
-		Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
+		Post post = postRepository2.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
 		return mapToDTO(post);
 	}
 
 	@Override
 	public PostDTO updatePost(PostDTO postDTO, long id) {
 		// get post by id from the database
-		Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
+		Post post = postRepository2.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
 		post.setTitle(postDTO.getTitle());
 		post.setDescription(postDTO.getDescription());
 		post.setContent(post.getContent());
 
-		Post updatedPost = postRepository.save(post);
+		Post updatedPost = postRepository2.save(post);
 
 		return mapToDTO(updatedPost);
 
@@ -146,14 +164,14 @@ public class PostServiceImpl implements PostService {
 	@Override
 	public void deletePostById(long id) {
 		// get post by id from the database
-		Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
-		postRepository.delete(post);
+		Post post = postRepository2.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
+		postRepository2.delete(post);
 
 	}
 
 	@Override
 	public List<PostDTO> getPostByCategory(String category) {
-		List<Post> posts = postRepository.findByCategory(category).get();
+		List<Post> posts = postRepository2.findByCategory(category).get();
 		// String principal =
 		// SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
 		String username;
@@ -172,13 +190,31 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public List<PostDTO> getPostBetweenDate(Date createdFrom, Date createdTo) {
-		return postRepository.findByCreatedAtBetween(createdFrom, createdTo).get().stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
+	public List<PostDTO> getPostBetweenDate(LocalDateTime createdFrom, LocalDateTime createdTo) {
+		return postRepository2.findByCreatedAtBetween(createdFrom, createdTo).get().stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
 	}
 
 	@Override
 	public void deletePostByName(String title) {
-		Optional<Post> post = Optional.ofNullable(postRepository.findByTitle(title).orElseThrow(() -> new ResourceNotFoundException("post", "id", 00)));
-		postRepository.delete(post.get());
+		Optional<Post> post = Optional.ofNullable(postRepository2.findByTitle(title).orElseThrow(() -> new ResourceNotFoundException("post", "id", 00)));
+		postRepository2.delete(post.get());
+	}
+
+	@Override
+	public void deleteUser(String user) {
+		userRepository.deleteByName(user);
+		userRepository.deleteByUsername(user);
+		userRepository.deleteByEmail(user);
+	}
+
+	@Override
+	public void deleteAllPostsOfUser(String user) {
+		postRepository2.deleteByUser(user);
+		
+//		for(int i = 0; i < list.size(); i++) {
+//			if(list.get(i).getUser().equals(user)) {
+//				postRepository2.deleteById(list.get(i).getId());
+//			}
+//		}
 	}
 }

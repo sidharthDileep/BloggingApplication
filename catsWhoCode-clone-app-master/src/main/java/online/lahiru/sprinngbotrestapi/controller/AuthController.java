@@ -1,13 +1,7 @@
 package online.lahiru.sprinngbotrestapi.controller;
 
-import online.lahiru.sprinngbotrestapi.entity.Role;
-import online.lahiru.sprinngbotrestapi.entity.User;
-import online.lahiru.sprinngbotrestapi.payload.JWTAuthResponse;
-import online.lahiru.sprinngbotrestapi.payload.LoginDTO;
-import online.lahiru.sprinngbotrestapi.payload.SignUpDTO;
-import online.lahiru.sprinngbotrestapi.repository.RoleRepository;
-import online.lahiru.sprinngbotrestapi.repository.UserRepository;
-import online.lahiru.sprinngbotrestapi.security.JWTTokenProvider;
+import java.util.Collections;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
+import online.lahiru.sprinngbotrestapi.entity.Role;
+import online.lahiru.sprinngbotrestapi.entity.User;
+import online.lahiru.sprinngbotrestapi.payload.JWTAuthResponse;
+import online.lahiru.sprinngbotrestapi.payload.LoginDTO;
+import online.lahiru.sprinngbotrestapi.payload.SignUpDTO;
+import online.lahiru.sprinngbotrestapi.repository.RoleRepository2;
+import online.lahiru.sprinngbotrestapi.repository.UserRepository2;
+import online.lahiru.sprinngbotrestapi.security.JWTTokenProvider;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -31,10 +32,13 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository2 userRepository2;
 
+//    @Autowired
+//    private RoleRepository roleRepository;
+    
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleRepository2 roleRepository2;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -56,12 +60,12 @@ public class AuthController {
     @PostMapping("/signup")
 public ResponseEntity<?> registerUser(@RequestBody SignUpDTO signUpDTO){
 
-        if(userRepository.existsByUsername(signUpDTO.getUsername())){
+        if(userRepository2.existsByUsername(signUpDTO.getUsername())){
             return  new ResponseEntity<>("username is already taken",HttpStatus.BAD_REQUEST);
 
         }
 
-        if(userRepository.existsByEmail(signUpDTO.getEmail())){
+        if(userRepository2.existsByEmail(signUpDTO.getEmail())){
             return  new ResponseEntity<>("email is already taken",HttpStatus.BAD_REQUEST);
 
         }
@@ -72,10 +76,10 @@ public ResponseEntity<?> registerUser(@RequestBody SignUpDTO signUpDTO){
         user.setEmail(signUpDTO.getEmail());
         user.setPassword(passwordEncoder.encode(signUpDTO.getPassword()));
 
-        Role roles = roleRepository.findByName("ROLE_ADMIN").get();
+        Role roles = roleRepository2.findByName("ROLE_ADMIN").get();
         user.setRoles(Collections.singleton(roles));
 
-        userRepository.save(user);
+        userRepository2.save(user);
 
         return  new ResponseEntity<>("user saved successfully !", HttpStatus.OK);
         

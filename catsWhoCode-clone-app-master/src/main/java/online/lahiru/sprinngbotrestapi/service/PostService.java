@@ -1,11 +1,11 @@
 package online.lahiru.sprinngbotrestapi.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import online.lahiru.sprinngbotrestapi.payload.PostDTO;
 import online.lahiru.sprinngbotrestapi.payload.PostResponse;
-import org.springframework.stereotype.Service;
-
-import java.sql.Date;
-import java.util.List;
 
 
 public interface PostService {
@@ -17,11 +17,15 @@ public interface PostService {
      
      List<PostDTO> getPostByCategory(String category);
      
-     List<PostDTO> getPostBetweenDate(Date createdFrom, Date createdTo);
+     List<PostDTO> getPostBetweenDate(LocalDateTime localDateTime, LocalDateTime localDateTime2);
 
      PostDTO updatePost(PostDTO postDTO, long id);
 
      void deletePostById(long id);
      
      void deletePostByName(String title);
+
+	 void deleteUser(String user);
+	 
+	 void deleteAllPostsOfUser(String user);
 }
