@@ -1,0 +1,13 @@
+package online.blog.app.repository;
+
+import java.util.Optional;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import online.blog.app.entity.Role;
+
+public interface RoleRepository2 extends MongoRepository<Role,Long> {
+
+    Optional<Role> findByName(String name);
+
+}
