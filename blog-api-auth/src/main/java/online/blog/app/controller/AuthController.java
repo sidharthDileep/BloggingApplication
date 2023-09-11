@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,9 +24,11 @@ import online.blog.app.payload.SignUpDTO;
 import online.blog.app.repository.RoleRepository2;
 import online.blog.app.repository.UserRepository2;
 import online.blog.app.security.JWTTokenProvider;
+import online.blog.app.service.impl.SequenceGeneratorService;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+//@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
@@ -46,6 +49,9 @@ public class AuthController {
     @Autowired
     private JWTTokenProvider tokenProvider;
 
+    @Autowired
+	private SequenceGeneratorService service;
+    
     @PostMapping("/signin")
     public ResponseEntity<JWTAuthResponse> authenticateUser(@RequestBody LoginDTO loginDTO){
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getUsernameOrEmail(),
@@ -71,6 +77,7 @@ public ResponseEntity<?> registerUser(@RequestBody SignUpDTO signUpDTO){
         }
 
         User user = new User();
+        user.setId(service.getSequenceNumber(User.SEQUENCE_NAME));
         user.setName(signUpDTO.getName());
         user.setUsername(signUpDTO.getUsername());
         user.setEmail(signUpDTO.getEmail());

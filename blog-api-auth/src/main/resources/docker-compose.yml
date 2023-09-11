@@ -31,14 +31,14 @@ services:
     image: gatewayapp:1.0
     container_name: api-gateway
     ports:
-      - 9090:9090
+      - "9090:9090"
     depends_on:
       - eureka-server
   blog-api-auth:
     image: blog-api-auth:1.0
     container_name: blog-api-auth
     ports:
-      - 8083:8080
+      - "8083:8080"
     links:
       - my-blog-mongo
     depends_on:
@@ -48,7 +48,7 @@ services:
     image: blog-api-auth:1.0
     container_name: blog-api-read
     ports:
-      - 8082:8080
+      - "8082:8080"
     links:
       - my-blog-mongo
     depends_on:
@@ -58,7 +58,7 @@ services:
     image: blog-api-auth:1.0
     container_name: blog-api-write
     ports:
-      - 8081:8080
+      - "8081:8080"
     links:
       - my-blog-mongo
     depends_on:
