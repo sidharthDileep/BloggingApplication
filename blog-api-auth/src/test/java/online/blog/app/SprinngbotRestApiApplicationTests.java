@@ -1,4 +1,4 @@
-package online.lahiru.sprinngbotrestapi;
+package online.blog.app;
 
 import org.springframework.boot.test.context.SpringBootTest;
 
