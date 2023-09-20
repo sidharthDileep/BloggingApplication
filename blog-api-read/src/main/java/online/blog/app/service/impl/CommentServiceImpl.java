@@ -6,14 +6,15 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import online.blog.app.entity.Comment;
 import online.blog.app.entity.Post;
-import online.blog.app.entity.Role;
 import online.blog.app.exception.BlogAPIException;
 import online.blog.app.exception.ResourceNotFoundException;
 import online.blog.app.payload.CommentDTO;
+import online.blog.app.payload.CommentEvent;
 import online.blog.app.repository.CommentRepository2;
 import online.blog.app.repository.PostRepository2;
 import online.blog.app.service.CommentService;
@@ -37,19 +38,6 @@ public class CommentServiceImpl implements CommentService {
         this.mapper=mapper;
     }
 
-    @Override
-    public CommentDTO createComment(long postId, CommentDTO commentDTO) {
-        Comment comment = mapToEntity(commentDTO);
-
-        Post post = postRepository2.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
-        comment.setPost(post);
-        Comment newComment = commentRepository2.save(comment);
-        
-        newComment.setId((long) service.getSequenceNumber(Comment.SEQUENCE_NAME));
-
-
-        return mapToDTO(newComment);
-    }
 
     @Override
     public List<CommentDTO> getCommentsByPostId(long postId) {
@@ -67,40 +55,6 @@ public class CommentServiceImpl implements CommentService {
             throw  new BlogAPIException(HttpStatus.BAD_REQUEST,"Comment does not belongs to the post");
         }
         return mapToDTO(comment);
-    }
-
-    @Override
-    public CommentDTO updateComment(Long postId, long commentId, CommentDTO commentRequest) {
-
-        Post post = postRepository2.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
-        Comment comment=commentRepository2.findById(commentId).orElseThrow(()->new ResourceNotFoundException("Comment","id", commentId));
-
-
-        if(!comment.getPost().getId().equals(post.getId())){
-            throw  new BlogAPIException(HttpStatus.BAD_REQUEST,"Comment does not belongs to the post");
-
-        }
-        comment.setName(commentRequest.getName());
-        comment.setEmial(commentRequest.getEmial());
-        comment.setBody(commentRequest.getBody());
-
-        Comment updatedComment = commentRepository2.save(comment);
-        return mapToDTO(updatedComment);
-
-
-    }
-
-    @Override
-    public void deletePost(Long postId, Long commentId) {
-        Post post = postRepository2.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
-        Comment comment=commentRepository2.findById(commentId).orElseThrow(()->new ResourceNotFoundException("Comment","id", commentId));
-
-        if(!comment.getPost().getId().equals(post.getId())){
-            throw  new BlogAPIException(HttpStatus.BAD_REQUEST,"Comment does not belongs to the post");
-
-        }
-        commentRepository2.delete(comment);
-
     }
 
     private CommentDTO mapToDTO(Comment comment) {
@@ -127,4 +81,24 @@ public class CommentServiceImpl implements CommentService {
 
         return comment;
     }
+    
+    //@KafkaListener(topics = "comment-event-topic", groupId = "comment-event-group")
+	public void processCommentEvents(CommentEvent commentEvent) {
+		Comment comment = commentEvent.getComment();
+		if (commentEvent.getEventType().equals("CreatePost")) {
+			commentRepository2.save(comment);
+		}
+		else if (commentEvent.getEventType().equals("UpdateComment")) {
+			Comment existingComment = commentRepository2.findById(comment.getId()).get();
+			existingComment.setBody(comment.getBody());
+			existingComment.setName(comment.getName());
+			existingComment.setPost(comment.getPost());
+			existingComment.setEmial(comment.getEmial());
+			commentRepository2.save(existingComment);
+		} else {
+			if(commentEvent.getEventType().equals("DeleteComment")){
+				commentRepository2.delete(comment);
+			}
+		}
+	}
 }

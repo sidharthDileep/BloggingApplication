@@ -1,10 +1,7 @@
 package online.blog.app.service.impl;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -12,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +18,7 @@ import org.springframework.stereotype.Service;
 import online.blog.app.entity.Post;
 import online.blog.app.exception.ResourceNotFoundException;
 import online.blog.app.payload.PostDTO;
+import online.blog.app.payload.PostEvent;
 import online.blog.app.payload.PostResponse;
 import online.blog.app.repository.PostRepository2;
 import online.blog.app.repository.UserRepository2;
@@ -27,20 +26,23 @@ import online.blog.app.service.PostService;
 
 @Service
 public class PostServiceImpl implements PostService {
-	
-	@Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-	
+
+//	@Autowired
+//	private KafkaTemplate<String, String> kafkaTemplate;
+//	
+//	@Autowired
+//	private KafkaTemplate<String, String> cqrsKafka;
+
 	@Autowired
 	private UserRepository2 userRepository;
-	
+
 	String topic = "myTopic";
-	
+
 	@Autowired
 	private SequenceGeneratorService service;
 
-	//private PostRepository postRepository;
-	
+	// private PostRepository postRepository;
+
 	private PostRepository2 postRepository2;
 	private ModelMapper mapper;
 
@@ -72,47 +74,6 @@ public class PostServiceImpl implements PostService {
 		post.setDescription(postDTO.getDescription());
 		post.setContent(postDTO.getContent());
 		return post;
-	}
-
-	@Override
-	public PostDTO createPost(PostDTO postDTO) {
-
-//        Post post = new Post();
-//        post.setTitle(postDTO.getTitle());
-//        post.setDescription(postDTO.getDescription());
-//        post.setContent(postDTO.getContent());
-		String username;
-		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (principal instanceof UserDetails) {
-			username = ((UserDetails) principal).getUsername();
-		} else {
-			username = principal.toString();
-		}
-		System.out.println("UserName : " + username);
-		Post post = mapToEntiy(postDTO);
-		post.setUser(username);
-		post.setId((long) service.getSequenceNumber(Post.SEQUENCE_NAME));
-		
-		LocalDateTime date = LocalDate.now().atStartOfDay();
-		
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-DD-YYYY");
-		date.format(formatter);
-		
-		post.setCreatedAt(date);
-		
-		Post newPost = postRepository2.save(post);
-
-		// convert entity to DTO
-		PostDTO postResponse = mapToDTO(newPost);
-//        PostDTO postResponse = new PostDTO();
-//
-//        postResponse.setId(newPost.getId());
-//        postResponse.setTitle(newPost.getTitle());
-//        postResponse.setDescription(newPost.getDescription());
-//        postResponse.setContent(newPost.getContent());
-		kafkaTemplate.send(topic, "Post request Succesful -> " + newPost);
-
-		return postResponse;
 	}
 
 	@Override
@@ -148,28 +109,6 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PostDTO updatePost(PostDTO postDTO, long id) {
-		// get post by id from the database
-		Post post = postRepository2.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
-		post.setTitle(postDTO.getTitle());
-		post.setDescription(postDTO.getDescription());
-		post.setContent(post.getContent());
-
-		Post updatedPost = postRepository2.save(post);
-
-		return mapToDTO(updatedPost);
-
-	}
-
-	@Override
-	public void deletePostById(long id) {
-		// get post by id from the database
-		Post post = postRepository2.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
-		postRepository2.delete(post);
-
-	}
-
-	@Override
 	public List<PostDTO> getPostByCategory(String category) {
 		List<Post> posts = postRepository2.findByCategory(category).get();
 		// String principal =
@@ -181,8 +120,8 @@ public class PostServiceImpl implements PostService {
 		} else {
 			username = principal.toString();
 		}
-		
-		System.out.println("UserName : " + username);
+
+		// System.out.println("UserName : " + username);
 
 		List<PostDTO> postdtos = posts.stream().filter(s -> s.getUser().equals(username)).map(post -> mapToDTO(post))
 				.collect(Collectors.toList());
@@ -191,30 +130,30 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public List<PostDTO> getPostBetweenDate(LocalDateTime createdFrom, LocalDateTime createdTo) {
-		return postRepository2.findByCreatedAtBetween(createdFrom, createdTo).get().stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
+		return postRepository2.findByCreatedAtBetween(createdFrom, createdTo).get().stream().map(post -> mapToDTO(post))
+				.collect(Collectors.toList());
 	}
 
-	@Override
-	public void deletePostByName(String title) {
-		Optional<Post> post = Optional.ofNullable(postRepository2.findByTitle(title).orElseThrow(() -> new ResourceNotFoundException("post", "id", 00)));
-		postRepository2.delete(post.get());
+	@KafkaListener(topics = "post-event-topic", groupId = "post-event-group")
+	public void processProductEvents(PostEvent productEvent) {
+		Post post = productEvent.getPost();
+		if (productEvent.getEventType().equals("CreatePost")) {
+			postRepository2.save(post);
+		}
+		else if (productEvent.getEventType().equals("UpdatePost")) {
+			Post existingPost = postRepository2.findById(post.getId()).get();
+			existingPost.setTitle(post.getTitle());
+			existingPost.setCategory(post.getCategory());
+			existingPost.setDescription(post.getDescription());
+			existingPost.setUser(post.getUser());
+			existingPost.setComments(post.getComments());
+			existingPost.setContent(post.getContent());
+			postRepository2.save(existingPost);
+		} else {
+			if(productEvent.getEventType().equals("DeletePost")){
+				postRepository2.delete(post);
+			}
+		}
 	}
 
-	@Override
-	public void deleteUser(String user) {
-		userRepository.deleteByName(user);
-		userRepository.deleteByUsername(user);
-		userRepository.deleteByEmail(user);
-	}
-
-	@Override
-	public void deleteAllPostsOfUser(String user) {
-		postRepository2.deleteByUser(user);
-		
-//		for(int i = 0; i < list.size(); i++) {
-//			if(list.get(i).getUser().equals(user)) {
-//				postRepository2.deleteById(list.get(i).getId());
-//			}
-//		}
-	}
 }

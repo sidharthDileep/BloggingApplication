@@ -4,6 +4,9 @@
             <div class="col-md-6">
                 <h1><a href="" class="title">My Blog</a></h1>
             </div>
+            <div class="col-md-3" *ngIf="authService.isAuthenticated()">
+                <a href="/add-post" class="new-post">Add Post</a>
+            </div>
             <div class="col-md-6">
                 <a href="/login" class="login btn btn-default">Login</a>
                 <a href="/register" class="register btn btn-default">Register</a>

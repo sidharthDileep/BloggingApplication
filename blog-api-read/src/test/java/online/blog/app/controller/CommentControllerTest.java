@@ -36,27 +36,6 @@ public class CommentControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void testCreateComment() throws Exception {
-        // Mock the CommentDTO that would be returned by the service
-        CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setId(1L);
-        commentDTO.setName("Test User");
-        commentDTO.setEmial("test@example.com");
-        commentDTO.setBody("Test Comment");
-
-        when(commentService.createComment(1L, commentDTO)).thenReturn(commentDTO);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/posts/1/comments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(commentDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test User"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value("test@example.com"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.body").value("Test Comment"));
-    }
-
-    @Test
     public void testGetCommentsByPostId() throws Exception {
         // Mock the CommentDTO list that would be returned by the service
         CommentDTO comment1 = new CommentDTO();

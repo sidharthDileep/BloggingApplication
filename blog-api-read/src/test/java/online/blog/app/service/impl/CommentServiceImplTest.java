@@ -43,28 +43,6 @@ public class CommentServiceImplTest {
     }
 
     @Test
-    public void testCreateComment() {
-        // Mock the postRepository2's findById and save methods
-        long postId = 1L;
-        CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setName("John Doe");
-        commentDTO.setEmial("john@example.com");
-        commentDTO.setBody("Test comment");
-
-        when(postRepository2.findById(postId)).thenReturn(Optional.of(new Post()));
-        when(commentRepository2.save(any())).thenReturn(new Comment());
-
-        // Call the service method
-        CommentDTO createdComment = commentService.createComment(postId, commentDTO);
-
-        // Verify that the findById and save methods were called
-        verify(postRepository2, times(1)).findById(postId);
-        verify(commentRepository2, times(1)).save(any());
-
-        // You can add assertions to check the content of the createdComment
-    }
-
-    @Test
     public void testGetCommentsByPostId() {
         // Mock the commentRepository2's findByPostId method
         long postId = 1L;
@@ -96,48 +74,6 @@ public class CommentServiceImplTest {
         verify(commentRepository2, times(1)).findById(commentId);
 
         // You can add assertions to check the content of the commentDTO
-    }
-
-    @Test
-    public void testUpdateComment() {
-        // Mock the postRepository2's findById and save methods
-        long postId = 1L;
-        long commentId = 2L;
-        CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setName("Updated Name");
-        commentDTO.setEmial("updated@example.com");
-        commentDTO.setBody("Updated comment");
-
-        when(postRepository2.findById(postId)).thenReturn(Optional.of(new Post()));
-        when(commentRepository2.findById(commentId)).thenReturn(Optional.of(new Comment()));
-        when(commentRepository2.save(any())).thenReturn(new Comment());
-
-        // Call the service method
-        CommentDTO updatedComment = commentService.updateComment(postId, commentId, commentDTO);
-
-        // Verify that the findById and save methods were called
-        verify(postRepository2, times(1)).findById(postId);
-        verify(commentRepository2, times(1)).findById(commentId);
-        verify(commentRepository2, times(1)).save(any());
-
-        // You can add assertions to check the content of the updatedComment
-    }
-
-    @Test
-    public void testDeletePost() {
-        // Mock the postRepository2's findById and delete methods
-        long postId = 1L;
-        long commentId = 2L;
-        when(postRepository2.findById(postId)).thenReturn(Optional.of(new Post()));
-        when(commentRepository2.findById(commentId)).thenReturn(Optional.of(new Comment()));
-
-        // Call the service method
-        commentService.deletePost(postId, commentId);
-
-        // Verify that the findById and delete methods were called
-        verify(postRepository2, times(1)).findById(postId);
-        verify(commentRepository2, times(1)).findById(commentId);
-        verify(commentRepository2, times(1)).delete(any());
     }
 
     // Additional test cases can be added as needed

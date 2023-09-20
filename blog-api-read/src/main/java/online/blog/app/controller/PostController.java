@@ -34,8 +34,8 @@ import online.blog.app.utils.AppConstants;
 @RequestMapping("/api/v1/posts")
 public class PostController {
 	
-	@Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+//	@Autowired
+//    private KafkaTemplate<String, String> kafkaTemplate;
 	
 	String topic = "myTopic";
 
@@ -48,33 +48,33 @@ public class PostController {
     }
 
     //get all post rest API
-    @GetMapping
+    @GetMapping("/all")
     public PostResponse getAllPosts(
             @RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
             @RequestParam(value = "sortBY", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
             @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir
     ) {
-    	kafkaTemplate.send(topic, "Get all request received ");
+    	//kafkaTemplate.send(topic, "Get all request received ");
         return postService.getAllPosts(pageNo, pageSize, sortBy, sortDir);
     }
 
     //get post by id rest API
     @GetMapping("/{id}")
     public ResponseEntity<PostDTO> getPostByIdv1(@PathVariable(name = "id") long id) {
-    	kafkaTemplate.send(topic, "GET Request Received -> ID : " + id);
+    	//kafkaTemplate.send(topic, "GET Request Received -> ID : " + id);
         return ResponseEntity.ok(postService.getPostById(id));
     }
     
     @GetMapping("category/{category}")
     public ResponseEntity<List<PostDTO>> getPostByCategory(@PathVariable(name = "category") String category) {
-    	kafkaTemplate.send(topic, "GET Request with Category -> Category : " + category);
+    	//kafkaTemplate.send(topic, "GET Request with Category -> Category : " + category);
         return ResponseEntity.ok(postService.getPostByCategory(category));
     }
     
     @GetMapping("between")
     public ResponseEntity<List<PostDTO>> getPostBetweenDate(String durationFrom, String durationTo) {
-    	kafkaTemplate.send(topic, "GET Request with Duration range -> From : " + durationFrom + " To : " + durationTo);
+    	//kafkaTemplate.send(topic, "GET Request with Duration range -> From : " + durationFrom + " To : " + durationTo);
     	
 		///DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-DD-YYYY");
 		//System.out.println(LocalDate.parse(durationFrom, formatter).atStartOfDay());
@@ -82,16 +82,8 @@ public class PostController {
 		  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.US);
 
 		  LocalDateTime localDateTime = LocalDate.parse(durationFrom, formatter).atStartOfDay();
-		  System.out.println(localDateTime);
+		  //System.out.println(localDateTime);
         return ResponseEntity.ok(postService.getPostBetweenDate(LocalDate.parse(durationFrom, formatter).atStartOfDay(), LocalDate.parse(durationTo, formatter).atStartOfDay()));
     }
 
-    //update update post API
-    @PutMapping("/{id}")
-    public ResponseEntity<PostDTO> updatePost(@Valid @RequestBody PostDTO postDTO, @PathVariable(name = "id") long id) {
-    	kafkaTemplate.send(topic, "PUT Request Received -> " + postDTO + " for id :" + id );
-        PostDTO postResponce = postService.updatePost(postDTO, id);
-        return new ResponseEntity<>(postResponce, HttpStatus.OK);
-
-    }
 }

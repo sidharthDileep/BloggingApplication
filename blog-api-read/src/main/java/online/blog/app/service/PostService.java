@@ -9,7 +9,6 @@ import online.blog.app.payload.PostResponse;
 
 
 public interface PostService {
-     PostDTO createPost(PostDTO postDTO);
 
      PostResponse getAllPosts(int pageNo, int pageSize,String sortBy,String sortDir);
 
@@ -19,13 +18,4 @@ public interface PostService {
      
      List<PostDTO> getPostBetweenDate(LocalDateTime localDateTime, LocalDateTime localDateTime2);
 
-     PostDTO updatePost(PostDTO postDTO, long id);
-
-     void deletePostById(long id);
-     
-     void deletePostByName(String title);
-
-	 void deleteUser(String user);
-	 
-	 void deleteAllPostsOfUser(String user);
 }

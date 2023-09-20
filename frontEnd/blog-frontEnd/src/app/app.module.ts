@@ -12,6 +12,9 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import {NgxWebstorageModule} from 'ngx-webstorage';
 import { HttpClientInterceptor } from './http-client-interceptor';
+import { HomeComponent } from './home/home.component';
+import { AddPostComponent } from './add-post/add-post.component';
+import {EditorModule} from '@tinymce/tinymce-angular';
 
 @NgModule({
   declarations: [
@@ -19,7 +22,9 @@ import { HttpClientInterceptor } from './http-client-interceptor';
     HeaderComponent,
     RegisterComponent,
     LoginComponent,
-    RegisterSuccessComponent
+    RegisterSuccessComponent,
+    HomeComponent,
+    AddPostComponent
   ],
   imports: [
     BrowserModule,
@@ -27,10 +32,13 @@ import { HttpClientInterceptor } from './http-client-interceptor';
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+    EditorModule,
     NgxWebstorageModule.forRoot(),
     RouterModule.forRoot([
       {path: 'register', component: RegisterComponent},
       {path: 'login', component: LoginComponent},
+      {path: 'home', component: HomeComponent},
+      {path: 'add-post', component: AddPostComponent},
       {path: 'register-success', component: RegisterSuccessComponent}
     ])
   ],

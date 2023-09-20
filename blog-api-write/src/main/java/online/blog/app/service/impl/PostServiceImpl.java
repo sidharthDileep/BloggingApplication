@@ -3,41 +3,49 @@ package online.blog.app.service.impl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import online.blog.app.entity.Post;
 import online.blog.app.exception.ResourceNotFoundException;
 import online.blog.app.payload.PostDTO;
-import online.blog.app.payload.PostResponse;
+import online.blog.app.payload.PostEvent;
 import online.blog.app.repository.PostRepository2;
 import online.blog.app.repository.UserRepository2;
 import online.blog.app.service.PostService;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public class PostServiceImpl implements PostService {
 	
-	@Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+//	@Autowired
+//	@Qualifier("producer-1")
+//    private KafkaTemplate<String, String> kafkaTemplate;
 	
 	@Autowired
 	private UserRepository2 userRepository;
 	
 	String topic = "myTopic";
 	
-	@Autowired
-	private SequenceGeneratorService service;
+	//@Autowired
+	//@Qualifier("producer-2")
+    //private KafkaTemplate<String, Object> kafkaTemplate;
+	
+	 @Autowired
+	 private KafkaTemplate<String,Object> template;
+	
+//	@Autowired
+//	private SequenceGeneratorService service;
 
 	//private PostRepository postRepository;
 	
@@ -76,11 +84,6 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public PostDTO createPost(PostDTO postDTO) {
-
-//        Post post = new Post();
-//        post.setTitle(postDTO.getTitle());
-//        post.setDescription(postDTO.getDescription());
-//        post.setContent(postDTO.getContent());
 		String username;
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if (principal instanceof UserDetails) {
@@ -88,10 +91,11 @@ public class PostServiceImpl implements PostService {
 		} else {
 			username = principal.toString();
 		}
-		System.out.println("UserName : " + username);
+		//System.out.println("UserName : " + username);
+		
 		Post post = mapToEntiy(postDTO);
 		post.setUser(username);
-		post.setId((long) service.getSequenceNumber(Post.SEQUENCE_NAME));
+		//post.setId((long) service.getSequenceNumber(Post.SEQUENCE_NAME));
 		
 		LocalDateTime date = LocalDate.now().atStartOfDay();
 		
@@ -101,51 +105,32 @@ public class PostServiceImpl implements PostService {
 		post.setCreatedAt(date);
 		
 		Post newPost = postRepository2.save(post);
+		
+        PostEvent event=new PostEvent("CreatePost", newPost);
+       
+        try {
+            ListenableFuture<SendResult<String, Object>> future =  template.send("post-event-topic", event);
+            future.completable().whenComplete((result, ex) -> {
+                if (ex == null) {
+                    System.out.println("Sent message=[" + event.toString() +
+                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                } else {
+                    System.out.println("Unable to send message=[" +
+                    		event.toString() + "] due to : " + ex.getMessage());
+                }
+            });
+
+        } catch (Exception ex) {
+            System.out.println("ERROR : "+ ex.getMessage());
+        }
 
 		// convert entity to DTO
 		PostDTO postResponse = mapToDTO(newPost);
-//        PostDTO postResponse = new PostDTO();
-//
-//        postResponse.setId(newPost.getId());
-//        postResponse.setTitle(newPost.getTitle());
-//        postResponse.setDescription(newPost.getDescription());
-//        postResponse.setContent(newPost.getContent());
-		kafkaTemplate.send(topic, "Post request Succesful -> " + newPost);
+		//kafkaTemplate.send(topic, "Post request Succesful -> " + newPost);
 
 		return postResponse;
 	}
 
-	@Override
-	public PostResponse getAllPosts(int pageNo, int pageSize, String sortBy, String sortDir) {
-
-//        PageRequest pageable = PageRequest.of(pageNo,pageSize, Sort.by(sortBy).descending());
-//descending order sorting
-
-		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
-				: Sort.by(sortBy).descending();
-		PageRequest pageable = PageRequest.of(pageNo, pageSize, sort);
-
-		Page<Post> posts = postRepository2.findAll(pageable);
-		// get content for page object
-		posts.getContent();
-
-		List<PostDTO> content = posts.stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
-		PostResponse postResponse = new PostResponse();
-		postResponse.setContent(content);
-		postResponse.setPageNo(posts.getNumber());
-		postResponse.setPageSize(posts.getSize());
-		postResponse.setTotalElements(posts.getTotalElements());
-		postResponse.setTotalPages(posts.getTotalPages());
-		postResponse.setLast(posts.isLast());
-
-		return postResponse;
-	}
-
-	@Override
-	public PostDTO getPostById(long id) {
-		Post post = postRepository2.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
-		return mapToDTO(post);
-	}
 
 	@Override
 	public PostDTO updatePost(PostDTO postDTO, long id) {
@@ -156,6 +141,24 @@ public class PostServiceImpl implements PostService {
 		post.setContent(post.getContent());
 
 		Post updatedPost = postRepository2.save(post);
+		
+		PostEvent event=new PostEvent("UpdatePost", updatedPost);
+		
+		try {
+            ListenableFuture<SendResult<String, Object>> future =   template.send("post-event-topic", event);
+            future.completable().whenComplete((result, ex) -> {
+                if (ex == null) {
+                    System.out.println("Sent message=[" + event.toString() +
+                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                } else {
+                    System.out.println("Unable to send message=[" +
+                    		event.toString() + "] due to : " + ex.getMessage());
+                }
+            });
+
+        } catch (Exception ex) {
+            System.out.println("ERROR : "+ ex.getMessage());
+        }
 
 		return mapToDTO(updatedPost);
 
@@ -166,38 +169,51 @@ public class PostServiceImpl implements PostService {
 		// get post by id from the database
 		Post post = postRepository2.findById(id).orElseThrow(() -> new ResourceNotFoundException("post", "id", id));
 		postRepository2.delete(post);
-
-	}
-
-	@Override
-	public List<PostDTO> getPostByCategory(String category) {
-		List<Post> posts = postRepository2.findByCategory(category).get();
-		// String principal =
-		// SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
-		String username;
-		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (principal instanceof UserDetails) {
-			username = ((UserDetails) principal).getUsername();
-		} else {
-			username = principal.toString();
-		}
 		
-		System.out.println("UserName : " + username);
+		PostEvent event=new PostEvent("DeletePost", post);
+		
+		try {
+            ListenableFuture<SendResult<String, Object>> future =  template.send("post-event-topic", event);
+            future.completable().whenComplete((result, ex) -> {
+                if (ex == null) {
+                    System.out.println("Sent message=[" + event.toString() +
+                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                } else {
+                    System.out.println("Unable to send message=[" +
+                    		event.toString() + "] due to : " + ex.getMessage());
+                }
+            });
 
-		List<PostDTO> postdtos = posts.stream().filter(s -> s.getUser().equals(username)).map(post -> mapToDTO(post))
-				.collect(Collectors.toList());
-		return postdtos;
-	}
+        } catch (Exception ex) {
+            System.out.println("ERROR : "+ ex.getMessage());
+        }
 
-	@Override
-	public List<PostDTO> getPostBetweenDate(LocalDateTime createdFrom, LocalDateTime createdTo) {
-		return postRepository2.findByCreatedAtBetween(createdFrom, createdTo).get().stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
+
 	}
 
 	@Override
 	public void deletePostByName(String title) {
-		Optional<Post> post = Optional.ofNullable(postRepository2.findByTitle(title).orElseThrow(() -> new ResourceNotFoundException("post", "id", 00)));
+		Optional<Post> post = Optional.ofNullable(postRepository2.findByTitle(title).orElseThrow(() -> new ResourceNotFoundException("post", title, 0)));
 		postRepository2.delete(post.get());
+		
+		PostEvent event=new PostEvent("DeletePost", post.get());
+		
+		try {
+            ListenableFuture<SendResult<String, Object>> future = template.send("post-event-topic", event);
+            future.completable().whenComplete((result, ex) -> {
+                if (ex == null) {
+                    System.out.println("Sent message=[" + event.toString() +
+                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                } else {
+                    System.out.println("Unable to send message=[" +
+                    		event.toString() + "] due to : " + ex.getMessage());
+                }
+            });
+
+        } catch (Exception ex) {
+            System.out.println("ERROR : "+ ex.getMessage());
+        }
+
 	}
 
 	@Override
@@ -209,12 +225,25 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public void deleteAllPostsOfUser(String user) {
-		postRepository2.deleteByUser(user);
+		Optional<Post> post = postRepository2.deleteByUser(user);
 		
-//		for(int i = 0; i < list.size(); i++) {
-//			if(list.get(i).getUser().equals(user)) {
-//				postRepository2.deleteById(list.get(i).getId());
-//			}
-//		}
+		PostEvent event=new PostEvent("DeletePost", post.get());
+		
+		try {
+            ListenableFuture<SendResult<String, Object>> future = template.send("post-event-topic", event);
+            future.completable().whenComplete((result, ex) -> {
+                if (ex == null) {
+                    System.out.println("Sent message=[" + event.toString() +
+                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                } else {
+                    System.out.println("Unable to send message=[" +
+                    		event.toString() + "] due to : " + ex.getMessage());
+                }
+            });
+
+        } catch (Exception ex) {
+            System.out.println("ERROR : "+ ex.getMessage());
+        }
+
 	}
 }

@@ -1,7 +1,6 @@
 package onlineblog.app.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,8 +11,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,9 +20,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,11 +27,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import online.blog.app.entity.Post;
 import online.blog.app.exception.ResourceNotFoundException;
 import online.blog.app.payload.PostDTO;
-import online.blog.app.payload.PostResponse;
 import online.blog.app.repository.PostRepository2;
 import online.blog.app.repository.UserRepository2;
 import online.blog.app.service.impl.PostServiceImpl;
-import online.blog.app.service.impl.SequenceGeneratorService;
 
 class PostServiceImplTest {
 
@@ -53,8 +45,8 @@ class PostServiceImplTest {
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    @Mock
-    private SequenceGeneratorService sequenceGeneratorService;
+//    @Mock
+//    private SequenceGeneratorService sequenceGeneratorService;
 
     @Spy
     private ModelMapper modelMapper;
@@ -72,7 +64,7 @@ class PostServiceImplTest {
         when(securityContext.getAuthentication().getPrincipal()).thenReturn("testUser");
 
         // Mock the sequenceGeneratorService to return a specific value
-        when(sequenceGeneratorService.getSequenceNumber(Post.SEQUENCE_NAME)).thenReturn(1);
+        //when(sequenceGeneratorService.getSequenceNumber(Post.SEQUENCE_NAME)).thenReturn(1);
 
         PostDTO postDTO = new PostDTO();
         postDTO.setTitle("Test Post");
@@ -103,54 +95,6 @@ class PostServiceImplTest {
         assertEquals("Test Content", result.getContent());
 
         verify(kafkaTemplate, times(1)).send(anyString(), anyString());
-    }
-
-    @Test
-    void testGetAllPosts() {
-        int pageNo = 0;
-        int pageSize = 10;
-        String sortBy = "title";
-        String sortDir = "asc";
-
-        PageRequest pageable = PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.ASC, sortBy));
-        List<Post> postList = new ArrayList<>();
-        Page<Post> postPage = mock(Page.class);
-
-        when(postRepository2.findAll(pageable)).thenReturn(postPage);
-        when(postPage.getContent()).thenReturn(postList);
-
-        PostResponse result = postService.getAllPosts(pageNo, pageSize, sortBy, sortDir);
-
-        assertNotNull(result);
-        assertEquals(0, result.getContent().size());
-        assertEquals(0, result.getPageNo());
-        assertEquals(10, result.getPageSize());
-        assertEquals(0, result.getTotalElements());
-        assertEquals(1, result.getTotalPages());
-        assertFalse(result.isLast());
-    }
-
-    @Test
-    void testGetPostById() {
-        long postId = 1L;
-        Post post = new Post();
-        post.setId(postId);
-        post.setTitle("Test Post");
-        when(postRepository2.findById(postId)).thenReturn(Optional.of(post));
-
-        PostDTO result = postService.getPostById(postId);
-
-        assertNotNull(result);
-        assertEquals(postId, result.getId());
-        assertEquals("Test Post", result.getTitle());
-    }
-
-    @Test
-    void testGetPostByIdThrowsExceptionWhenPostNotFound() {
-        long postId = 1L;
-        when(postRepository2.findById(postId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> postService.getPostById(postId));
     }
 
     @Test
@@ -203,32 +147,6 @@ class PostServiceImplTest {
         when(postRepository2.findById(postId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> postService.deletePostById(postId));
-    }
-
-    @Test
-    void testGetPostByCategory() {
-        String category = "Test Category";
-        List<Post> postList = new ArrayList<>();
-
-        when(postRepository2.findByCategory(category)).thenReturn(Optional.of(postList));
-
-        List<PostDTO> result = postService.getPostByCategory(category);
-
-        assertNotNull(result);
-        assertEquals(0, result.size());
-    }
-
-    @Test
-    void testGetPostBetweenDate() {
-        LocalDateTime createdFrom = LocalDateTime.of(2023, 1, 1, 0, 0);
-        LocalDateTime createdTo = LocalDateTime.of(2023, 1, 31, 23, 59);
-
-        when(postRepository2.findByCreatedAtBetween(createdFrom, createdTo)).thenReturn(Optional.of(new ArrayList<>()));
-
-        List<PostDTO> result = postService.getPostBetweenDate(createdFrom, createdTo);
-
-        assertNotNull(result);
-        assertEquals(0, result.size());
     }
 
     @Test

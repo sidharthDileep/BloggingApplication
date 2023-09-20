@@ -18,7 +18,7 @@ export class AuthService {
   }
 
   register(registerPayload : RegisterPayload) : Observable<any>{
-    return this.httpClient.post(this.url + "signup", registerPayload);
+    return this.httpClient.post(this.url + "user/signup", registerPayload);
   }
 
   login(loginPayload: LoginPayload) {
@@ -28,5 +28,14 @@ export class AuthService {
       this.localStoraqeService.store('tokentype', data.tokentype);
       return true;
     }));
+  }
+
+  isAuthenticated(): boolean {
+    return this.localStoraqeService.retrieve('accessToken') != null;
+  }
+
+  logout() {
+    this.localStoraqeService.clear('accessToken');
+    this.localStoraqeService.clear('tokentype');
   }
 }

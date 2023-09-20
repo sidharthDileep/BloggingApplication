@@ -2,11 +2,11 @@ package online.blog.app.repository;
 
 import java.util.Optional;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import online.blog.app.entity.User;
 
-public interface UserRepository2 extends MongoRepository<User,Long> {
+public interface UserRepository2 extends JpaRepository<User,Long> {
 
     Optional<User> findByEmail(String email);
     Optional<User> findByUsernameOrEmail(String username, String email);

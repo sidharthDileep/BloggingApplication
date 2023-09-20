@@ -35,7 +35,6 @@ import online.blog.app.payload.SignUpDTO;
 import online.blog.app.repository.RoleRepository2;
 import online.blog.app.repository.UserRepository2;
 import online.blog.app.security.JWTTokenProvider;
-import online.blog.app.service.impl.SequenceGeneratorService;
 
 @SpringBootTest
 public class AuthControllerTest {
@@ -57,8 +56,8 @@ public class AuthControllerTest {
     @Mock
     private JWTTokenProvider tokenProvider;
 
-    @Mock
-    private SequenceGeneratorService service;
+//    @Mock
+//    private SequenceGeneratorService service;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -97,7 +96,7 @@ public class AuthControllerTest {
         Role role = new Role();
 		role.setName("ROLE_ADMIN");
         when(roleRepository2.findByName(any())).thenReturn(Optional.of(role));
-        when(service.getSequenceNumber(anyString())).thenReturn(1);
+        //when(service.getSequenceNumber(anyString())).thenReturn(1);
 
         // Create a SignUpDTO for the request body
         SignUpDTO signUpDTO = new SignUpDTO();
