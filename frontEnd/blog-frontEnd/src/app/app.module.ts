@@ -15,6 +15,9 @@ import { HttpClientInterceptor } from './http-client-interceptor';
 import { HomeComponent } from './home/home.component';
 import { AddPostComponent } from './add-post/add-post.component';
 import {EditorModule} from '@tinymce/tinymce-angular';
+import { PostComponent } from './post/post.component';
+import { NgxPaginationModule } from 'ngx-pagination';
+import { AuthGuard } from './auth.guard';
 
 @NgModule({
   declarations: [
@@ -24,21 +27,25 @@ import {EditorModule} from '@tinymce/tinymce-angular';
     LoginComponent,
     RegisterSuccessComponent,
     HomeComponent,
-    AddPostComponent
+    AddPostComponent,
+    PostComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    NgxPaginationModule,
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
     EditorModule,
     NgxWebstorageModule.forRoot(),
     RouterModule.forRoot([
+      {path: '', component: HomeComponent},
       {path: 'register', component: RegisterComponent},
       {path: 'login', component: LoginComponent},
       {path: 'home', component: HomeComponent},
-      {path: 'add-post', component: AddPostComponent},
+      {path: 'add-post', component: AddPostComponent, canActivate: [AuthGuard]},
+      {path: 'post/:id', component: PostComponent},
       {path: 'register-success', component: RegisterSuccessComponent}
     ])
   ],

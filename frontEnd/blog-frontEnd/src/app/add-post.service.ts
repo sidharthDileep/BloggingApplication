@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {PostPayload} from './add-post/post-payload';
 import {Observable} from 'rxjs';
+import { PostPayloadResponse } from './add-post/post-payload-response';
 
 
 @Injectable({
@@ -15,11 +16,11 @@ export class AddPostService {
     return this.httpClient.post('http://localhost:9090/blog-write-api/api/v1/posts', postPayload);
   }
 
-  getAllPosts(): Observable<Array<PostPayload>>{
-    return this.httpClient.get<Array<PostPayload>>("http://localhost:9090/blog-read-api/api/v1/posts/all");
+  getAllPosts(): Observable<any>{
+    return this.httpClient.get<any>("http://localhost:9090/blog-read-api/api/v1/posts/all");
   }
 
-  getPost(permaLink: Number):Observable<PostPayload>{
-    return this.httpClient.get<PostPayload>('http://localhost:9090/blog-read-api/api/v1/posts/' + permaLink);
+  getPost(permaLink: Number):Observable<PostPayloadResponse>{
+    return this.httpClient.get<PostPayloadResponse>('http://localhost:9090/blog-read-api/api/v1/posts/' + permaLink);
   }
 }

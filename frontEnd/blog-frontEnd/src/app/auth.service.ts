@@ -23,7 +23,7 @@ export class AuthService {
 
   login(loginPayload: LoginPayload) {
     return this.httpClient.post<JwtAuthResponse>(this.url + "signin", loginPayload).pipe(map(data => {
-      console.log(data);
+      //console.log(data);
       this.localStoraqeService.store('accessToken', data.accessToken);
       this.localStoraqeService.store('tokentype', data.tokentype);
       return true;
