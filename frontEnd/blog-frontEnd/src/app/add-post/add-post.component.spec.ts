@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AddPostComponent } from './add-post.component';
+import { FormControl, FormGroup, FormsModule } from '@angular/forms';
+import { AddPostService } from '../add-post.service';
 
 describe('AddPostComponent', () => {
   let component: AddPostComponent;
@@ -8,6 +10,7 @@ describe('AddPostComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [FormGroup],
       declarations: [ AddPostComponent ]
     })
     .compileComponents();
@@ -19,5 +22,10 @@ describe('AddPostComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it("it should create a new post", () => {
+    const postService = fixture.debugElement.injector.get(AddPostService);
+    fixture.detectChanges();
   });
 });
