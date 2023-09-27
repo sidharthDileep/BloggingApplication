@@ -10,6 +10,9 @@ import { LocalStorageService } from 'ngx-webstorage';
   providedIn: 'root'
 })
 export class AuthService {
+  getLocalStorage() {
+    throw new Error('Method not implemented.');
+  }
   
   private url = 'http://localhost:9090/blog-auth-api/api/v1/auth/';
   //private url = 'http://localhost:8083/api/v1/auth/';
