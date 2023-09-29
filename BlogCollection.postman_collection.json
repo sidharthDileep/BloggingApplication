@@ -15,7 +15,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"name\": \"Vasudha\",\r\n    \"username\" : \"newvasu\",\r\n    \"email\" : \"vasudhatcs@gmail.com\",\r\n    \"password\" : \"hello\"\r\n}",
+					"raw": "{\r\n    \"name\": \"vasudha\",\r\n    \"username\" : \"vasu\",\r\n    \"email\" : \"vasudha.tcs@gmail.com\",\r\n    \"password\" : \"hello\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -23,7 +23,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:9090/blog-auth-api/api/v1/auth/signup",
+					"raw": "http://localhost:9090/blog-auth-api/api/v1/auth/admin/signup",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -34,6 +34,43 @@
 						"api",
 						"v1",
 						"auth",
+						"admin",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8081/api/v1/auth/signup",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Vasudha\",\r\n    \"username\" : \"newvasu\",\r\n    \"email\" : \"vasudhatcs@gmail.com\",\r\n    \"password\" : \"hello\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9090/blog-auth-api/api/v1/auth/user/signup",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"blog-auth-api",
+						"api",
+						"v1",
+						"auth",
+						"user",
 						"signup"
 					]
 				}
@@ -50,7 +87,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"usernameOrEmail\" : \"newvasu\",\r\n    \"password\" : \"hello\"\r\n}",
+					"raw": "{\r\n    \"usernameOrEmail\" : \"sidhan\",\r\n    \"password\" : \"hello\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -78,21 +115,11 @@
 		{
 			"name": "http://localhost:8081/api/v1/posts",
 			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2YXN1ZGhhdGNzQGdtYWlsLmNvbSIsImlhdCI6MTY5MzQ2NTAwMCwiZXhwIjoxNjk0MDY5ODAwfQ.jUU5ZLKtU3MlpK7ZnnawBPgjeuptz2_NDk_eWuRYavxx6mZF1O-mqVXnIvH0U6pGwwuESX4yPrbqt-Nn8svoNg",
-							"type": "string"
-						}
-					]
-				},
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\" : 1,\r\n    \"category\" : \"Love\",\r\n    \"title\" : \"love\",\r\n    \"description\" : \"I love you Vasudha\",\r\n    \"content\" : \"only love\"\r\n}",
+					"raw": "{\r\n    \"category\" : \"First\",\r\n    \"title\" : \"TestTiltle\",\r\n    \"description\" : \"testinggggggggggggggggggggggggggg\",\r\n    \"content\" : \"hmmmmmmmmmmmmmmmmmmmmmmmm\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -122,16 +149,6 @@
 				"disableBodyPruning": true
 			},
 			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2YXN1ZGhhdGNzQGdtYWlsLmNvbSIsImlhdCI6MTY5MzQ2NTAwMCwiZXhwIjoxNjk0MDY5ODAwfQ.jUU5ZLKtU3MlpK7ZnnawBPgjeuptz2_NDk_eWuRYavxx6mZF1O-mqVXnIvH0U6pGwwuESX4yPrbqt-Nn8svoNg",
-							"type": "string"
-						}
-					]
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -151,7 +168,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:9090/blog-read-api/api/v1/posts/category/Love",
+					"raw": "http://localhost:9090/blog-read-api/api/v1/posts/category/Finance",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -163,7 +180,7 @@
 						"v1",
 						"posts",
 						"category",
-						"Love"
+						"Finance"
 					],
 					"query": [
 						{
@@ -177,21 +194,64 @@
 			"response": []
 		},
 		{
+			"name": "getAll",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9090/blog-read-api/api/v1/posts/all?pageNo=0&pageSize=5&sortBY=id&sortDir=asc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"blog-read-api",
+						"api",
+						"v1",
+						"posts",
+						"all"
+					],
+					"query": [
+						{
+							"key": "pageNo",
+							"value": "0"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						},
+						{
+							"key": "sortBY",
+							"value": "id"
+						},
+						{
+							"key": "sortDir",
+							"value": "asc"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "http://localhost:8081/api/v1/posts/between?durationFrom=01-Aug-2023&durationTo=12-Dec-2023",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
 			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2YXN1ZGhhdGNzQGdtYWlsLmNvbSIsImlhdCI6MTY5MzQ2NTAwMCwiZXhwIjoxNjk0MDY5ODAwfQ.jUU5ZLKtU3MlpK7ZnnawBPgjeuptz2_NDk_eWuRYavxx6mZF1O-mqVXnIvH0U6pGwwuESX4yPrbqt-Nn8svoNg",
-							"type": "string"
-						}
-					]
-				},
 				"method": "GET",
 				"header": [
 					{
@@ -247,16 +307,6 @@
 		{
 			"name": "http://localhost:8081/api/v1/posts/deleteUser/vasudhatcs@gmail.com",
 			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2YXN1ZGhhdGNzQGdtYWlsLmNvbSIsImlhdCI6MTY5MzQ2NTAwMCwiZXhwIjoxNjk0MDY5ODAwfQ.jUU5ZLKtU3MlpK7ZnnawBPgjeuptz2_NDk_eWuRYavxx6mZF1O-mqVXnIvH0U6pGwwuESX4yPrbqt-Nn8svoNg",
-							"type": "string"
-						}
-					]
-				},
 				"method": "DELETE",
 				"header": [],
 				"url": {
@@ -277,6 +327,152 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "http://localhost:8081/api/v1/posts/",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:9090/blog-write-api/api/v1/posts/20",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"blog-write-api",
+						"api",
+						"v1",
+						"posts",
+						"20"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8081/api/v1/posts/delete/",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:9090/blog-write-api/api/v1/posts/delete/dfsdfdgdfgfgfdhhhjfdfd",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"blog-write-api",
+						"api",
+						"v1",
+						"posts",
+						"delete",
+						"dfsdfdgdfgfgfdhhhjfdfd"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:9090/blog-write-api/api/v1/posts/33/comments",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9090/config-server/blog-auth-api/default",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"config-server",
+						"blog-auth-api",
+						"default"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:9090/blog-write-api/api/v1/posts/33/comments Copy",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\" : \"Sidharth\",\r\n    \"email\" : \"IamSidharth@gmail.com\",\r\n    \"body\" : \"what the fuck\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9090/blog-write-api/api/v1/posts/33/comments",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"blog-write-api",
+						"api",
+						"v1",
+						"posts",
+						"33",
+						"comments"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzaWRodUNUU0BnbWFpbC5jb20iLCJpYXQiOjE2OTU4ODI4NDQsImV4cCI6MTY5NjQ4NzY0NH0.vJO4d0pUslYnXKMeeQnqjc1TAcCOeYl8N7iTNod7Lm9OrlfRdVYsT1_7ZtMg0bu4Db-eNjl0-Y9v_S2aKJFhWg",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }

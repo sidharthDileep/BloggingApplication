@@ -9,3 +9,9 @@ npm i --save bootstrap
 npm config set legacy-peer-deps true
 
 npm cache clean --force
+
+
+--extra-config=kubeadm.ignore-preflight-errors=NumCPU --force --cpus=1
+
+1s command prompt (C:\kafka_2.12-3.2.3\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties)
+2nd command prompt (C:\kafka_2.12-3.2.3\bin\windows\kafka-server-start.bat .\config\server.properties)

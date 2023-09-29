@@ -41,11 +41,6 @@ export class RegisterComponent implements OnInit {
     this.registerPayload.email = this.registerForm.get('email')!.value;
     this.registerPayload.password = this.registerForm.get('password')!.value;
 
-    this.authService.register(this.registerPayload).subscribe(data => {
-      console.log('register succes');
-      this.router.navigateByUrl('/register-success');
-    }, error => {
-      console.log('register failed');
-    });
+    this.authService.register(this.registerPayload);
   }
 }

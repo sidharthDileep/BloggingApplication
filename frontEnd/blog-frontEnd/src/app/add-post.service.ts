@@ -3,24 +3,26 @@ import {HttpClient} from '@angular/common/http';
 import {PostPayload} from './add-post/post-payload';
 import {Observable} from 'rxjs';
 import { PostPayloadResponse } from './add-post/post-payload-response';
+import { environment } from '../environments/environment';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class AddPostService {
+  //'http://localhost:9090/blog-write-api/api/v1/posts'
 
   constructor(private httpClient: HttpClient) { }
 
   addPost(postPayload: PostPayload){
-    return this.httpClient.post('http://localhost:9090/blog-write-api/api/v1/posts', postPayload);
+    return this.httpClient.post(environment.writeUrl, postPayload);
   }
 
   getAllPosts(): Observable<any>{
-    return this.httpClient.get<any>("http://localhost:9090/blog-read-api/api/v1/posts/all");
+    return this.httpClient.get<any>(environment.readUrl + "/all");
   }
 
   getPost(permaLink: Number):Observable<PostPayloadResponse>{
-    return this.httpClient.get<PostPayloadResponse>('http://localhost:9090/blog-read-api/api/v1/posts/' + permaLink);
+    return this.httpClient.get<PostPayloadResponse>(environment.readUrl + '/' + permaLink);
   }
 }
