@@ -4,9 +4,9 @@
 
 export const environment = {
   production: false,
-  authUrl : "http://localhost:9090/blog-auth-api/api/v1/auth",
-  readUrl : "http://localhost:9090/blog-read-api/api/v1/posts",
-  writeUrl : "http://localhost:9090/blog-write-api/api/v1/posts"
+  authUrl : "http://localhost:8083/api/v1/auth",
+  readUrl : "http://localhost:8082/api/v1/posts",
+  writeUrl : "http://localhost:8081/api/v1/posts"
 };
 
 /*

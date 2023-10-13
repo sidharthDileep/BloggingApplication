@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,6 +33,7 @@ import online.blog.app.utils.AppConstants;
 
 @RestController
 @RequestMapping("/api/v1/posts")
+@CrossOrigin(origins = "*")
 public class PostController {
 	
 //	@Autowired

@@ -99,7 +99,7 @@ public class PostServiceImpl implements PostService {
 		
 		LocalDateTime date = LocalDate.now().atStartOfDay();
 		
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-DD-YYYY");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 		date.format(formatter);
 		
 		post.setCreatedAt(date);

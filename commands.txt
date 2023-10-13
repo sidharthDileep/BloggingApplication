@@ -16,3 +16,9 @@ npm cache clean --force
 kafka-server-start.bat C:\kafka_2.12-3.2.3\config\server.properties
 
 zookeeper-server-start.bat C:\kafka_2.12-3.2.3\config\zookeeper.properties
+
+54.236.223.174
+
+docker run -tty --publish 8080:8080 image:tag
+
+mvn spring-boot:build-image

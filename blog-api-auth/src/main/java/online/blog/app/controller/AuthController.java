@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,7 @@ import online.blog.app.security.JWTTokenProvider;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-//@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*")
 public class AuthController {
 
 	@Autowired

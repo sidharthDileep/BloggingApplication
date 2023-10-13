@@ -10,12 +10,11 @@
 	</parent>
 	<groupId>com.springboot.blog</groupId>
 	<artifactId>blog-api-read</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.6</version>
 	<name>blog-api-read</name>
 	<description>Project for blog application</description>
 	<properties>
 		<java.version>1.8</java.version>
-		<spring-cloud.version>2021.0.8</spring-cloud.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -41,12 +40,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-		    <groupId>org.springframework.cloud</groupId>
-		    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-		    <version>4.0.3</version>
 		</dependency>
 
 		<dependency>
@@ -102,8 +95,6 @@
 			    <version>2.7.5</version>
 			</dependency>
 
-		
-
 			<!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui -->
 			<dependency>
 			    <groupId>org.springdoc</groupId>
@@ -117,34 +108,13 @@
 			    <artifactId>spring-boot-starter-data-mongodb</artifactId>
 			</dependency>
 			
-			<!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-config-client -->
-			<dependency>
-			    <groupId>org.springframework.cloud</groupId>
-			    <artifactId>spring-cloud-config-client</artifactId>
-			    <!-- <version>${spring-cloud.version}</version> -->
-			</dependency>
+			<!-- <dependency>
+		        <groupId>org.mongodb</groupId>
+		        <artifactId>mongodb-driver-sync</artifactId>
+		        <version>4.10.2</version>
+		    </dependency> -->
 			
-			<!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-bootstrap -->
-			<dependency>
-			    <groupId>org.springframework.cloud</groupId>
-			    <artifactId>spring-cloud-starter-bootstrap</artifactId>
-			    <!-- <version>${spring-cloud.version}</version> -->
-			</dependency>
-			
-
 	</dependencies>
-	
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<build>
 		<plugins>
@@ -159,6 +129,14 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-compiler-plugin</artifactId>
+			    <configuration>
+			        <release>8</release>
+			    </configuration>
 			</plugin>
 			
 			<plugin>
