@@ -82,22 +82,34 @@ public class CommentServiceImpl implements CommentService {
         return comment;
     }
     
-    //@KafkaListener(topics = "comment-event-topic", groupId = "comment-event-group")
+    //SettableListenableFuture
+    
+    @KafkaListener(topics = "comment-event-topic", groupId = "comment-event-group")
 	public void processCommentEvents(CommentEvent commentEvent) {
 		Comment comment = commentEvent.getComment();
-		if (commentEvent.getEventType().equals("CreatePost")) {
+		if (commentEvent.getEventType().equals("CreateComment")) {
 			commentRepository2.save(comment);
+			Post post = postRepository2.findById(comment.getIdOfPost()).orElseThrow(() -> new ResourceNotFoundException("Post", "id", comment.getIdOfPost()));
+			post.getComments().add(comment);
+			postRepository2.save(post);
 		}
 		else if (commentEvent.getEventType().equals("UpdateComment")) {
 			Comment existingComment = commentRepository2.findById(comment.getId()).get();
+			Post post = postRepository2.findById(comment.getIdOfPost()).orElseThrow(() -> new ResourceNotFoundException("Post", "id", comment.getIdOfPost()));
+			post.getComments().remove(existingComment);
 			existingComment.setBody(comment.getBody());
 			existingComment.setName(comment.getName());
 			existingComment.setPost(comment.getPost());
-			existingComment.setEmial(comment.getEmial());
+			existingComment.setEmail(comment.getEmail());
 			commentRepository2.save(existingComment);
+			post.getComments().add(existingComment);
+			postRepository2.save(post);
 		} else {
 			if(commentEvent.getEventType().equals("DeleteComment")){
 				commentRepository2.delete(comment);
+				Post post = postRepository2.findById(comment.getIdOfPost()).orElseThrow(() -> new ResourceNotFoundException("Post", "id", comment.getIdOfPost()));
+				post.getComments().remove(comment);
+				postRepository2.save(post);
 			}
 		}
 	}

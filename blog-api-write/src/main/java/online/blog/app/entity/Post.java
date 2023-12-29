@@ -1,5 +1,6 @@
 package online.blog.app.entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,6 +14,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,7 +35,7 @@ import lombok.Setter;
 )
 //@Document(collection = "posts")
 @EqualsAndHashCode(exclude = "comments")
-public class Post {
+public class Post implements Serializable {
 	
 
     //@Transient
@@ -59,7 +62,8 @@ public class Post {
     
     
     private LocalDateTime createdAt ;
-
+    
+    @JsonManagedReference
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Comment> comments= new HashSet<>();
 

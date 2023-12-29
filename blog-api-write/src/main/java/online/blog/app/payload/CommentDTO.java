@@ -16,7 +16,7 @@ public class CommentDTO {
 
     @NotEmpty(message = "email should not be empty")
     @Email
-    private String emial;
+    private String email;
     @NotEmpty
     @Size(min = 10, message = "you need to add minimum 10 charactors")
     private String body;

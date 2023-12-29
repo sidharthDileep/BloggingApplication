@@ -1,13 +1,14 @@
 package online.blog.app.service.impl;
 
-import java.util.concurrent.CompletableFuture;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.util.concurrent.SettableListenableFuture;
 
 import online.blog.app.entity.Comment;
 import online.blog.app.entity.Post;
@@ -31,9 +32,9 @@ public class CommentServiceImpl implements CommentService {
 //	private SequenceGeneratorService service;
 
 	private ModelMapper mapper;
-
-//	@Autowired
-//	private KafkaTemplate<String, Object> template;
+	
+	@Autowired
+	 private KafkaTemplate<String,Object> template;
 
 	public CommentServiceImpl(CommentRepository2 commentRepository, PostRepository2 postRepository,
 			ModelMapper mapper) {
@@ -50,14 +51,15 @@ public class CommentServiceImpl implements CommentService {
 				.orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
 		comment.setPost(post);
 		Comment newComment = commentRepository2.save(comment);
+		newComment.setIdOfPost(post.getId());
 
 		// newComment.setId((long) service.getSequenceNumber(Comment.SEQUENCE_NAME));
 		
 		CommentEvent event=new CommentEvent("CreateComment", newComment);
 	       
-//        try {
-//            CompletableFuture<SendResult<String, Object>> future =  (CompletableFuture<SendResult<String, Object>>) template.send("post-event-topic", event);
-//            future.whenComplete((result, ex) -> {
+        try {
+        	//SettableListenableFuture<SendResult<String, Object>> future =  (SettableListenableFuture<SendResult<String, Object>>) template.send("comment-event-topic", event);
+//            ((CompletionStage<SendResult<String, Object>>) future).whenComplete((result, ex) -> {
 //                if (ex == null) {
 //                    System.out.println("Sent message=[" + event.toString() +
 //                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
@@ -66,10 +68,26 @@ public class CommentServiceImpl implements CommentService {
 //                    		event.toString() + "] due to : " + ex.getMessage());
 //                }
 //            });
-//
-//        } catch (Exception ex) {
-//            System.out.println("ERROR : "+ ex.getMessage());
-//        }
+        	
+        	ListenableFuture<SendResult<String, Object>> future = template.send("comment-event-topic", event);
+
+            // Attach a callback to the future
+            future.addCallback(new ListenableFutureCallback<SendResult<String, Object>>() {
+                @Override
+                public void onSuccess(SendResult<String, Object> result) {
+                    System.out.println("Sent message=[" + event.toString() +
+                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                }
+
+                @Override
+                public void onFailure(Throwable ex) {
+                    System.out.println("Unable to send message=[" + event.toString() + "] due to: " + ex.getMessage());
+                }
+            });
+
+        } catch (Exception ex) {
+            System.out.println("ERROR : "+ ex.getMessage());
+        }
 
 		return mapToDTO(newComment);
 	}
@@ -87,28 +105,33 @@ public class CommentServiceImpl implements CommentService {
 
 		}
 		comment.setName(commentRequest.getName());
-		comment.setEmial(commentRequest.getEmial());
+		comment.setEmail(commentRequest.getEmail());
 		comment.setBody(commentRequest.getBody());
+		comment.setIdOfPost(post.getId());
 
 		Comment updatedComment = commentRepository2.save(comment);
 		
 		CommentEvent event=new CommentEvent("UpdateComment", updatedComment);
 	       
-//        try {
-//            CompletableFuture<SendResult<String, Object>> future =  (CompletableFuture<SendResult<String, Object>>) template.send("post-event-topic", event);
-//            future.whenComplete((result, ex) -> {
-//                if (ex == null) {
-//                    System.out.println("Sent message=[" + event.toString() +
-//                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
-//                } else {
-//                    System.out.println("Unable to send message=[" +
-//                    		event.toString() + "] due to : " + ex.getMessage());
-//                }
-//            });
-//
-//        } catch (Exception ex) {
-//            System.out.println("ERROR : "+ ex.getMessage());
-//        }
+        try {
+        	ListenableFuture<SendResult<String, Object>> future = template.send("comment-event-topic", event);
+
+            // Attach a callback to the future
+            future.addCallback(new ListenableFutureCallback<SendResult<String, Object>>() {
+                @Override
+                public void onSuccess(SendResult<String, Object> result) {
+                    System.out.println("Sent message=[" + event.toString() +
+                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                }
+
+                @Override
+                public void onFailure(Throwable ex) {
+                    System.out.println("Unable to send message=[" + event.toString() + "] due to: " + ex.getMessage());
+                }
+            });
+        } catch (Exception ex) {
+            System.out.println("ERROR : "+ ex.getMessage());
+        }
         
 		return mapToDTO(updatedComment);
 
@@ -120,6 +143,8 @@ public class CommentServiceImpl implements CommentService {
 				.orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
 		Comment comment = commentRepository2.findById(commentId)
 				.orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
+		
+		comment.setIdOfPost(post.getId());
 
 		if (!comment.getPost().getId().equals(post.getId())) {
 			throw new BlogAPIException(HttpStatus.BAD_REQUEST, "Comment does not belongs to the post");
@@ -129,8 +154,8 @@ public class CommentServiceImpl implements CommentService {
 		
 		CommentEvent event=new CommentEvent("DeleteComment", comment);
 	       
-//        try {
-//            CompletableFuture<SendResult<String, Object>> future =  (CompletableFuture<SendResult<String, Object>>) template.send("post-event-topic", event);
+        try {
+        	//SettableListenableFuture<SendResult<String, Object>> future =  (SettableListenableFuture<SendResult<String, Object>>) template.send("comment-event-topic", event);
 //            future.whenComplete((result, ex) -> {
 //                if (ex == null) {
 //                    System.out.println("Sent message=[" + event.toString() +
@@ -140,10 +165,26 @@ public class CommentServiceImpl implements CommentService {
 //                    		event.toString() + "] due to : " + ex.getMessage());
 //                }
 //            });
-//
-//        } catch (Exception ex) {
-//            System.out.println("ERROR : "+ ex.getMessage());
-//        }
+        	
+        	ListenableFuture<SendResult<String, Object>> future = template.send("comment-event-topic", event);
+
+            // Attach a callback to the future
+            future.addCallback(new ListenableFutureCallback<SendResult<String, Object>>() {
+                @Override
+                public void onSuccess(SendResult<String, Object> result) {
+                    System.out.println("Sent message=[" + event.toString() +
+                            "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                }
+
+                @Override
+                public void onFailure(Throwable ex) {
+                    System.out.println("Unable to send message=[" + event.toString() + "] due to: " + ex.getMessage());
+                }
+            });
+
+        } catch (Exception ex) {
+            System.out.println("ERROR : "+ ex.getMessage());
+        }
 
 	}
 

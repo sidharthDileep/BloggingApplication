@@ -1,5 +1,6 @@
 package online.blog.app.entity;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -21,7 +22,7 @@ import lombok.NoArgsConstructor;
 //        name = "posts",uniqueConstraints = {@UniqueConstraint(columnNames = {"title"})}
 //)
 @Document(collection = "posts")
-public class Post {
+public class Post implements Serializable {
 	
 
     @Transient
